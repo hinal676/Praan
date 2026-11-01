@@ -4,7 +4,7 @@
 
 A full-stack Node.js, Express, and MongoDB web app with a React 19 + Vite frontend and an existing Node.js backend designed for health-conscious users seeking personalized, nutritious recipes tailored to their medical conditions, dietary preferences, and lifestyle needs.
 
-## 🎯 Features
+## Features
 
 ### Authentication & User Management
 
@@ -105,7 +105,7 @@ praan/
 
 ---
 
-## ⚡ Quick Start (5 minutes)
+## Quick Start (5 minutes)
 
 ### 1. Install Dependencies
 
@@ -178,7 +178,7 @@ The root `npm run build` command now builds the React client.
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
 ### Three-Layer Architecture
 
@@ -222,7 +222,7 @@ The root `npm run build` command now builds the React client.
 
 ---
 
-## 🔐 API Endpoints
+## API Endpoints
 
 ### Authentication
 
@@ -271,7 +271,7 @@ DELETE /api/users/profile            # Delete user profile
 
 ---
 
-## 🚀 API Integration Details
+## API Integration Details
 
 ### Spoonacular API
 
@@ -335,7 +335,7 @@ Recipes are auto-seeded on first startup from Spoonacular API.
 
 ---
 
-## ✅ Integration Verification
+## Integration Verification
 
 Run these checks after setup:
 
