@@ -22,7 +22,7 @@ const ApiRequestCounterSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now,
-    expire: 86400, // Auto-delete after 24 hours
+    // expire: 86400, // Auto-delete after 24 hours
   },
 });
 
