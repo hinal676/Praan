@@ -31,17 +31,21 @@ class OptimizedRecipeService {
    */
   async seedInitialRecipes() {
     try {
-      // Check if already seeded with complete data
+      // Check if already seeded
       let seedStatus = await SeedingStatus.findOne({ name: "spoonacular" });
 
-      // Check if recipes already exist with complete instructions
+      // Count existing seeded recipes. Note: this intentionally does NOT
+      // require every recipe to have non-empty instructions - some detail
+      // calls can fail (e.g. transient errors or a 402 quota response) even
+      // when seeding overall succeeded, and treating that as "incomplete"
+      // caused every server restart to wipe and re-fetch the whole catalog
+      // from Spoonacular, burning the daily API quota each time.
       const existingRecipes = await Recipe.countDocuments({
         isSeeded: true,
-        instructions: { $exists: true, $ne: [] },
       });
 
       if (seedStatus?.isSeeded && existingRecipes >= INITIAL_SEED_RECIPES) {
-        console.log("[SEED] Already seeded with complete data. Skipping.");
+        console.log("[SEED] Already seeded. Skipping.");
         return {
           success: true,
           message: "Already seeded",

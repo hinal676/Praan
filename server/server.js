@@ -3,7 +3,10 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const helmet = require("helmet");
 const path = require("path");
-require("dotenv").config();
+const fs = require("fs");
+// Load server/.env explicitly so env vars resolve correctly no matter which
+// directory the process is started from (repo root `npm start` vs `cd server`).
+require("dotenv").config({ path: path.join(__dirname, ".env") });
 
 // Import routes
 const authRoutes = require("./routes/auth");
@@ -12,17 +15,35 @@ const userRoutes = require("./routes/users");
 const { limiter } = require("./middlewares/rateLimit");
 
 const app = express();
+const isProduction = process.env.NODE_ENV === "production";
 
-const allowedOrigins = new Set([
-  process.env.FRONTEND_URL || "http://localhost:3000",
-  "http://localhost:3000",
-  "http://127.0.0.1:3000",
-  "http://[::1]:3000",
-]);
+if (isProduction) {
+  // Trust the first proxy hop (e.g. Render/Railway/Nginx) so req.ip and
+  // express-rate-limit see the real client IP instead of the proxy's.
+  app.set("trust proxy", 1);
+}
+
+// FRONTEND_URL may hold a single origin or a comma-separated list (e.g. a
+// production domain plus its www. alias).
+const configuredOrigins = (process.env.FRONTEND_URL || "http://localhost:3000")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const allowedOrigins = new Set(
+  isProduction
+    ? configuredOrigins
+    : [
+        ...configuredOrigins,
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://[::1]:3000",
+      ],
+);
 
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow non-browser requests (no Origin header) and configured local origins.
+    // Allow non-browser requests (no Origin header) and configured origins.
     if (!origin || allowedOrigins.has(origin)) {
       return callback(null, true);
     }
@@ -39,8 +60,17 @@ app.use(limiter); // Rate limiting
 app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ limit: "10kb", extended: true }));
 
-// Serve static files from client directory
-app.use(express.static(path.join(__dirname, "../client")));
+// Serve the built frontend in production, but only when it's actually
+// present alongside this server (a combined single-process deploy). When
+// the API is deployed on its own (e.g. behind a separately-hosted static
+// frontend), client/dist won't exist here and this block is skipped so the
+// SPA fallback below doesn't try to sendFile a missing index.html.
+const clientDistPath = path.join(__dirname, "../client/dist");
+const clientDistIndex = path.join(clientDistPath, "index.html");
+const serveClientDist = isProduction && fs.existsSync(clientDistIndex);
+if (serveClientDist) {
+  app.use(express.static(clientDistPath));
+}
 
 // Import quota model for display
 const ApiRequestCounter = require("./models/ApiRequestCounter");
@@ -117,13 +147,24 @@ app.use("/api/recipes", recipeRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/user", userRoutes);
 
-// Fallback to serve index.html for SPA routing
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../client/index.html"));
+// Any /api/* route that didn't match above is a genuine 404, not SPA content.
+app.use("/api", (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "Route not found",
+  });
 });
 
-// Error handling for undefined routes
-app.use("*", (req, res) => {
+if (serveClientDist) {
+  // Let the React app handle client-side routing for every other GET route.
+  app.get("*", (req, res) => {
+    res.sendFile(clientDistIndex);
+  });
+}
+
+// Fallback for anything else unmatched (non-GET routes, or any route at all
+// in development, where the Vite dev server - not Express - serves the app).
+app.use((req, res) => {
   res.status(404).json({
     success: false,
     message: "Route not found",

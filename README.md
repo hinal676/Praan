@@ -307,7 +307,10 @@ npm test
 
 ### Database Seeding
 
-Recipes are auto-seeded on first startup from Spoonacular API.
+Recipes are auto-seeded on first startup from the Spoonacular API, and the
+startup check skips seeding once 16 recipes already exist - it does not
+re-seed on every restart. To force a full re-fetch, call the authenticated
+`POST /api/recipes/reseed` endpoint explicitly.
 
 ### Frontend Development
 
@@ -383,6 +386,75 @@ ENABLE_QUOTA_MONITORING=false
 - React 19 and React Router are wired in the client app.
 - The app is currently being migrated page by page from the legacy DOM-driven frontend.
 - Existing caching helpers and backend API routes remain unchanged.
+
+---
+
+## 🚀 Deployment
+
+Two supported setups:
+
+### Option A: single combined process
+
+One Express process serves the built React app and the API from one origin,
+so the frontend's relative `/api` calls work without extra CORS config.
+
+```bash
+npm run install-all   # install root, server, and client dependencies
+npm run build          # builds client/dist
+NODE_ENV=production npm start
+```
+
+Required production env vars (see `.env.example`):
+
+- `NODE_ENV=production` - enables serving `client/dist` and the SPA fallback
+  route (only when `client/dist` is actually present - see Option B), and
+  makes CORS strict (only `FRONTEND_URL` origins are allowed).
+- `FRONTEND_URL` - your deployed origin(s). Comma-separate multiple origins
+  if the app is reachable at more than one (e.g. with and without `www.`).
+- `MONGODB_URI`, `JWT_SECRET`, `SPOONACULAR_API_KEY`, `YOUTUBE_API_KEY` - as
+  in local setup, pointed at production values.
+
+If the platform sits behind a reverse proxy/load balancer (Render, Railway,
+Heroku, Nginx, etc.), Express is already configured to trust the first proxy
+hop in production so rate limiting and logging see the real client IP.
+
+### Option B: client and API on separate hosts (e.g. client on Vercel, API on Render)
+
+The API is a persistent Express process (connects to MongoDB once, keeps a
+long-lived connection) - it is **not** structured as Vercel serverless
+functions, so only the static client belongs on Vercel; the API needs a
+host that runs a normal Node process (Render, Railway, Fly.io, a VPS, etc.).
+
+**API (Render or similar):**
+
+A `render.yaml` blueprint is included at the repo root - on Render, use
+"New > Blueprint" and point it at this repo; it preconfigures the root
+directory, build/start commands, and a health check, and prompts you to
+fill in the secret env vars (`MONGODB_URI`, `JWT_SECRET`,
+`SPOONACULAR_API_KEY`, `YOUTUBE_API_KEY`, `FRONTEND_URL`) in the dashboard.
+
+Manual setup (if not using the blueprint):
+- Root directory: `server`
+- Build command: `npm install`
+- Start command: `npm start`
+- Env vars: `NODE_ENV=production`, `FRONTEND_URL=<your Vercel URL>`,
+  `MONGODB_URI`, `JWT_SECRET`, `SPOONACULAR_API_KEY`, `YOUTUBE_API_KEY`.
+  (`PORT` is injected by the platform; the server already reads
+  `process.env.PORT`.) With no `client/dist` present, the server skips
+  static-serving and the SPA fallback automatically and behaves as a pure
+  JSON API, including a real 404 for unmatched routes.
+
+**Client (Vercel):**
+- Root directory: `client`
+- Build command: `npm run build`
+- Output directory: `dist`
+- Env var: `VITE_API_BASE_URL=<your Render API URL>/api` (e.g.
+  `https://praan-api.onrender.com/api`). Without this, the client falls
+  back to a same-origin relative `/api`, which only works in Option A.
+
+Set `FRONTEND_URL` on the API side to the exact Vercel URL (comma-separated
+if there's more than one, e.g. a preview + production domain) - cross-origin
+requests from any other origin are rejected in production.
 
 ---
 

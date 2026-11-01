@@ -18,7 +18,7 @@ const youtubeService = require("../services/youtubeService");
 /**
  * @desc    Seed initial recipes (one-time only)
  * @route   POST /api/recipes/seed
- * @access  Public
+ * @access  Private (any authenticated user; costs API quota)
  */
 exports.seedRecipes = async (req, res) => {
   try {
@@ -37,7 +37,7 @@ exports.seedRecipes = async (req, res) => {
 /**
  * @desc    Force reseed recipes (clears old data and refetches)
  * @route   POST /api/recipes/reseed
- * @access  Public (for testing)
+ * @access  Private (any authenticated user; deletes and re-fetches the catalog)
  */
 exports.reseedRecipes = async (req, res) => {
   try {

@@ -21,9 +21,11 @@ const {
 
 const router = express.Router();
 
-// Seeding routes (one-time initialization)
-router.post("/seed", seedRecipes);
-router.post("/reseed", reseedRecipes);
+// Seeding routes (one-time initialization). These delete and re-fetch the
+// catalog from Spoonacular, which costs API quota, so they require auth
+// (same convention as the other admin routes below).
+router.post("/seed", protect, seedRecipes);
+router.post("/reseed", protect, reseedRecipes);
 
 // Public routes
 router.get("/healthy", optionalAuth, getHealthyRecipes);

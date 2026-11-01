@@ -4,6 +4,7 @@
   "description": "Personalized Healthy Recipe Generator - Node.js, Express, and MongoDB web app",
   "main": "server/server.js",
   "scripts": {
+    "install-all": "npm install && npm --prefix server install && npm --prefix client install",
     "start": "node server/server.js",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "server": "nodemon server/server.js",
