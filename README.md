@@ -347,7 +347,7 @@ npm run dev
 curl "http://localhost:5000/api/health"
 
 # 3) Open the frontend in the browser
-#    http://localhost:3000
+ http://localhost:3000
 ```
 
 Expected results:
