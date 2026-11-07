@@ -1915,11 +1915,34 @@ h6 {
 
 .profile-tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
   margin-bottom: 32px;
   border-bottom: 2px solid #e2e8f0;
   padding-bottom: 16px;
   margin-top: 0;
+}
+
+@media (max-width: 640px) {
+  .profile-card {
+    padding: 20px;
+  }
+
+  .profile-header {
+    flex-wrap: wrap;
+  }
+
+  .profile-header-info h2 {
+    font-size: 22px;
+  }
+
+  .profile-actions {
+    flex-wrap: wrap;
+  }
+
+  .profile-actions .btn {
+    width: 100%;
+  }
 }
 
 .profile-tab {
@@ -1982,8 +2005,26 @@ h6 {
 
 .profile-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 16px;
+}
+
+@media (max-width: 1024px) {
+  .profile-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .profile-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 400px) {
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .profile-item {
@@ -2229,7 +2270,7 @@ h6 {
 
 .profile-status {
   min-height: 20px;
-  margin-top: 8px;
+  margin: 16px 0;
   font-size: 14px;
   font-weight: 600;
 }
@@ -2565,14 +2606,15 @@ h6 {
   }
 
   .auth-screen .modal-content.auth-modal {
-    grid-template-columns: 1fr 1fr;
-    min-height: auto;
-    height: 100vh;
-    max-height: 100vh;
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: 100vh;
+    max-height: none;
+    overflow-y: auto;
   }
 
   .auth-hero {
-    padding: 60px 40px 40px;
+    padding: 48px 32px 32px;
   }
 
   .auth-hero h1 {
@@ -2718,6 +2760,10 @@ h6 {
 
   .main-content {
     padding: var(--spacing-sm);
+  }
+
+  .auth-brand {
+    margin-bottom: 32px;
   }
 
   .auth-brand-name {

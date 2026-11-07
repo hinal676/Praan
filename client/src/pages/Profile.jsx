@@ -10,10 +10,19 @@ const SAVED_RECIPES_CACHE_KEY = "user:savedRecipes";
 
 const editGroups = {
   diet: ["veg", "non-veg", "vegan"],
-  healthConditions: ["diabetes", "cholesterol", "pcos", "anaemia", "thyroid"],
-  allergies: ["nuts", "dairy", "gluten", "shellfish"],
-  deficiencies: ["iron", "calcium", "vitamin-d", "protein"],
+  healthConditions: [
+    "diabetes",
+    "cholesterol",
+    "pcos",
+    "anaemia",
+    "thyroid",
+    "none",
+  ],
+  allergies: ["nuts", "dairy", "gluten", "shellfish", "none"],
+  deficiencies: ["iron", "calcium", "vitamin-d", "protein", "none"],
 };
+
+const genderOptions = ["male", "female", "other"];
 
 const editStateShape = {
   name: "",
@@ -21,7 +30,6 @@ const editStateShape = {
   gender: "",
   weight: "",
   height: "",
-  cookingTime: "",
   diet: "",
   cuisine: "indian",
   healthConditions: [],
@@ -66,7 +74,6 @@ function buildEditState(user) {
     gender: user?.basicDetails?.gender || "",
     weight: user?.basicDetails?.weight || "",
     height: user?.basicDetails?.height || "",
-    cookingTime: user?.basicDetails?.cookingTime || "",
     diet: user?.preferences?.diet?.[0] || "",
     cuisine: user?.preferences?.cuisine || "indian",
     healthConditions: user?.healthConditions || [],
@@ -82,7 +89,6 @@ function buildProfilePayload(editState) {
   if (editState.gender) basicDetails.gender = editState.gender;
   if (editState.weight) basicDetails.weight = Number(editState.weight);
   if (editState.height) basicDetails.height = Number(editState.height);
-  if (editState.cookingTime) basicDetails.cookingTime = editState.cookingTime;
 
   return {
     name: editState.name.trim(),
@@ -220,7 +226,6 @@ export default function ProfilePage({ user, token, onUserChange, onLogout }) {
           ? capitalize(profileUser.preferences.cuisine)
           : "-",
       ],
-      ["Cooking Time", profileUser.basicDetails?.cookingTime || "-"],
       [
         "Health Conditions",
         profileUser.healthConditions?.length
@@ -294,6 +299,11 @@ export default function ProfilePage({ user, token, onUserChange, onLogout }) {
       setEditState(buildEditState(updatedUser));
       setIsEditing(false);
       setStatus({ type: "success", message: "Profile updated successfully." });
+      setTimeout(() => {
+        setStatus((previous) =>
+          previous.type === "success" ? { type: "", message: "" } : previous,
+        );
+      }, 3000);
     } catch (error) {
       setStatus({
         type: "error",
@@ -411,7 +421,7 @@ export default function ProfilePage({ user, token, onUserChange, onLogout }) {
                     </div>
                     <div className="form-group">
                       <label htmlFor="profileGender">Gender</label>
-                      <input
+                      <select
                         id="profileGender"
                         value={editState.gender}
                         onChange={(event) =>
@@ -420,7 +430,14 @@ export default function ProfilePage({ user, token, onUserChange, onLogout }) {
                             gender: event.target.value,
                           }))
                         }
-                      />
+                      >
+                        <option value="">Select gender</option>
+                        {genderOptions.map((option) => (
+                          <option key={option} value={option}>
+                            {capitalize(option)}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                   <div className="form-row">
@@ -457,19 +474,6 @@ export default function ProfilePage({ user, token, onUserChange, onLogout }) {
 
                 <div className="form-section">
                   <h3>Preferences</h3>
-                  <div className="form-group">
-                    <label htmlFor="profileCookingTime">Cooking Time</label>
-                    <input
-                      id="profileCookingTime"
-                      value={editState.cookingTime}
-                      onChange={(event) =>
-                        setEditState((previous) => ({
-                          ...previous,
-                          cookingTime: event.target.value,
-                        }))
-                      }
-                    />
-                  </div>
                   <div className="form-group">
                     <label htmlFor="profileDiet">Diet</label>
                     <select
@@ -614,9 +618,11 @@ export default function ProfilePage({ user, token, onUserChange, onLogout }) {
           )}
         </div>
 
-        <p className={`profile-status ${status.type}`} aria-live="polite">
-          {status.message}
-        </p>
+        {status.message ? (
+          <p className={`profile-status ${status.type}`} aria-live="polite">
+            {status.message}
+          </p>
+        ) : null}
 
         <div className="profile-actions">
           {activeTab === "health-info" && !isEditing ? (

@@ -465,6 +465,7 @@ class OptimizedRecipeService {
 
       // ========== STEP 4: Save to cache ==========
       const recipesToCache = detailedRecipes.map((r) => ({
+        id: r.id,
         spoonacularId: r.id,
         title: r.title,
         image: r.image,

@@ -97,7 +97,10 @@ export default function App() {
   return (
     <ShellLayout user={currentUser} onLogout={handleLogout}>
       <Routes>
-        <Route path="/" element={<HomePage token={authToken} />} />
+        <Route
+          path="/"
+          element={<HomePage token={authToken} user={currentUser} />}
+        />
         <Route path="/discover" element={<DiscoverPage token={authToken} />} />
         <Route
           path="/profile"

@@ -74,8 +74,26 @@ function buildPreferences(formState) {
   };
 }
 
-export default function HomePage({ token }) {
-  const [formState, setFormState] = useState(initialFormState);
+function buildInitialFormState(user) {
+  const basicDetails = user?.basicDetails;
+
+  if (!basicDetails) {
+    return initialFormState;
+  }
+
+  return {
+    ...initialFormState,
+    basicDetails: {
+      age: basicDetails.age ? String(basicDetails.age) : "",
+      gender: basicDetails.gender || "",
+      weight: basicDetails.weight ? String(basicDetails.weight) : "",
+      height: basicDetails.height ? String(basicDetails.height) : "",
+    },
+  };
+}
+
+export default function HomePage({ token, user }) {
+  const [formState, setFormState] = useState(() => buildInitialFormState(user));
   const [generatedRecipes, setGeneratedRecipes] = useState([]);
   const [savedRecipeIds, setSavedRecipeIds] = useState(new Set());
   const [selectedRecipe, setSelectedRecipe] = useState(null);

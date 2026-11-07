@@ -30,6 +30,7 @@ const GeneratedRecipeCacheSchema = new mongoose.Schema({
   },
   recipes: [
     {
+      id: Number,
       spoonacularId: Number,
       title: String,
       image: String,

@@ -37,7 +37,7 @@ const UserSchema = new mongoose.Schema({
     },
     allergies: {
       type: [String],
-      enum: ["nuts", "dairy", "gluten", "shellfish", "soy", "sesame"],
+      enum: ["nuts", "dairy", "gluten", "shellfish", "soy", "sesame", "none"],
       default: [],
     },
     cuisine: {
